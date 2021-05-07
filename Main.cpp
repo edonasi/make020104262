@@ -189,7 +189,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		//四角を描画
 		//DrawBox(xPos, yPos, xPos+width, yPos+height, GetColor(nowColor.red, nowColor.green, nowColor.blue), TRUE);
-		DrawCircle(xcPos, ycSpeed, radius, GetColor(0, 0, 0), FALSE,5);
+		DrawCircle(xcPos, ycPos, radius, GetColor(0, 0, 0), FALSE,5);
 		//座標移動計算
 		xPos += xSpeed;
 		yPos += ySpeed;
@@ -233,6 +233,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			xcSpeed = speedAbs;
 		}
+
+		
 		if (ycPos + radius > GAME_HEIGHT)
 		{
 			ycSpeed = -speedAbs;
@@ -241,7 +243,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			ycSpeed = speedAbs;
 		}
-
+		
 		//ダブルバッファリングした画像を描画
 		ScreenFlip();
 	}
