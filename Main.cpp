@@ -49,19 +49,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetDrawScreen(DX_SCREEN_BACK);
 
 	while (1)
-	{
-		
+	{		
 		//画面を消去する
 		if (ClearDrawScreen() != 0) { break; }
 		
-
-		//キーが押されたとき
-		if (CheckHitKeyAll() != 0)
-		{
-			//無限ループを抜ける
-			break;
-		}
-
 		//メッセージを受け取り続ける、×などでウィンドウが閉じたとき
 		if (ProcessMessage() != 0) 
 		{
@@ -69,8 +60,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			break;
 		}
 
-		
-		
 		//ダブルバッファリングした画像を描画
 		ScreenFlip();
 	}
