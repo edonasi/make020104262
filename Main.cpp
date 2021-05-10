@@ -131,6 +131,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (1)
 	{
+		
 		//‰æ–Ê‚ğÁ‹‚·‚é
 		if (ClearDrawScreen() != 0) { break; }
 		
