@@ -18,6 +18,58 @@
 //ウィンドウバーの種類(0 : 縦横の長さを変更不可)(1 : バーがない)
 #define GAME_WINDOW_BAR 0
 
+//列挙型
+//ゲームのシーン
+enum GAME_SCENE 
+{
+	GAME_SCENE_TITLE,
+	GAME_SCENE_PLAY,
+	GAME_SCENE_END,
+	GAME_SCENE_CHANGE
+};
+
+//シーンを管理する変数
+//現在のゲームのシーン
+GAME_SCENE GameScene;
+//前回のゲームのシーン
+GAME_SCENE GameSceneOld;
+//次のゲームのシーン
+GAME_SCENE GameSceneNext;
+
+//画面の切り替え
+//フェードアウトしているか
+bool isFadeOut = false;
+//フェードインしているか
+bool isFadeIn = false;
+
+//※Alt+Shift+左ドラッグ=矩形選択
+// //プロトタイプ宣言
+//タイトル画面
+void Title();
+//タイトル画面 処理
+void TitleProc();
+//タイトル画面 描画
+void TitleDraw();
+//プレイ画面
+void Play();
+//プレイ画面 処理
+void PlayProc();
+//プレイ画面 描画
+void PlayDraw();
+//エンド画面
+void End();
+//エンド画面 処理
+void EndProc();
+//エンド画面 描画
+void EndDraw();
+//切り替え画面
+void Change();
+//切り替え画面 処理
+void ChangeProc();
+//切り替え画面 描画
+void ChangeDraw();
+
+
 //押している間加速
 int AddSpeed(int speed);
 
@@ -61,6 +113,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//移動の速さ
 	int speed = 1;
 
+	//最初のシーンはタイトル画面から
+	GameScene = GAME_SCENE_TITLE;
+
 	while (1)
 	{		
 		//画面を消去する
@@ -75,12 +130,40 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			break;
 		}
 
-		//スピードを速くする
-		/*if (Key1Down(KEY_INPUT_UP) || Key1Down(KEY_INPUT_DOWN)
-			|| Key1Down(KEY_INPUT_RIGHT) || Key1Down(KEY_INPUT_LEFT))
+		//ESCキーで強制終了
+		if (KeyClick(KEY_INPUT_ESCAPE)) { break; }
+
+		//以前のシーンを取得
+		if (GameScene != GAME_SCENE_CHANGE) 
 		{
-			speed++;
-		}*/
+			GameSceneOld = GameScene;
+		}
+
+		//※switch tab→enum候補 tab→switch_onの中にenumの変数が入る enter
+		switch (GameScene)
+		{
+			//タイトル画面
+		case GAME_SCENE_TITLE:
+			Title();
+			break;
+
+			//プレイ画面
+		case GAME_SCENE_PLAY:
+			Play();
+			break;
+
+			//エンド画面
+		case GAME_SCENE_END:
+			End();
+			break;
+
+			//切り替え画面
+		case GAME_SCENE_CHANGE:
+			Change();
+			break;
+		default:
+			break;
+		}
 
 		//速度をリセット
 		if (KeyUpping(KEY_INPUT_UP) || KeyUpping(KEY_INPUT_DOWN)
@@ -150,4 +233,93 @@ int AddSpeed(int speed)
 	{
 		return max;
 	}
+}
+
+/// <summary>
+/// タイトル画面
+/// </summary>
+void Title() 
+{
+	//処理
+	TitleProc();
+	//描画
+	TitleDraw();
+}
+
+//処理
+void TitleProc() 
+{
+	return;
+}
+
+//描画
+void TitleDraw() 
+{
+	const char* string = "Title";
+	DrawString(0, 50, string, GetColor(0, 0, 0));
+	//※レイヤー概念は下に書いた処理がゲーム画面では上のレイヤーに表示される(photoshopやillustratorと逆)
+	return;
+}
+
+//プレイ画面
+void Play() 
+{
+	//処理
+	PlayProc();
+	//描画
+	PlayDraw();
+}
+
+//処理
+void PlayProc() 
+{
+	return;
+}
+
+//描画
+void PlayDraw() 
+{
+	return;
+}
+
+//エンド画面
+void End() 
+{
+	//処理
+	EndProc();
+	//描画
+	EndDraw();
+}
+
+//処理
+void EndProc()
+{
+	return;
+}
+
+//描画
+void EndDraw()
+{
+	return;
+}
+
+//切り替え画面
+void Change() 
+{
+	//処理
+	ChangeProc();
+	//描画
+	ChangeDraw();
+}
+
+//処理
+void ChangeProc()
+{
+	return;
+}
+
+//描画
+void ChangeDraw()
+{
+	return;
 }
