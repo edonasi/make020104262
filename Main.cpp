@@ -42,8 +42,33 @@ bool isFadeOut = false;
 //フェードインしているか
 bool isFadeIn = false;
 
+//切り替えミリ秒
+int fadeTimeMill = 2000;
+//ミリ秒をフレーム秒に変換
+int fadeTimeMax = fadeTimeMill / 1000 * 60;
+
+int fadeCnt = 0;
+
+//フェードアウト
+//初期値
+int fadeOutCntInit = 0;
+//フェードアウトのカウンタ
+int fadeOutCnt = fadeOutCntInit;
+//フェードアウトのカウンタMAX
+int fadeOutCntMax = fadeTimeMax;
+
+//フェードイン
+//初期値
+int fadeInCntInit = fadeTimeMax;
+//フェードアウトのカウンタ
+int fadeInCnt = fadeInCntInit;
+//フェードアウトのカウンタ
+int fadeInCntMax = fadeTimeMax;
+
 //※Alt+Shift+左ドラッグ=矩形選択
 // //プロトタイプ宣言
+//画面を切り替える処理
+void ChangeScene(GAME_SCENE scene);
 //タイトル画面
 void Title();
 //タイトル画面 処理
@@ -165,6 +190,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			break;
 		}
 
+		//シーンを切り替える
+		if (GameSceneOld != GameScene)
+		{
+			//現在のシーンが切り替え画面でないとき
+			if (GameScene!=GAME_SCENE_CHANGE) 
+			{
+				GameSceneNext = GameScene;		//次のシーンを保存
+				GameScene = GAME_SCENE_CHANGE;	//画面切り替えシーンに変える
+			}
+		}
+
 		//速度をリセット
 		if (KeyUpping(KEY_INPUT_UP) || KeyUpping(KEY_INPUT_DOWN)
 			|| KeyUpping(KEY_INPUT_RIGHT) || KeyUpping(KEY_INPUT_LEFT))
@@ -236,6 +272,17 @@ int AddSpeed(int speed)
 }
 
 /// <summary>
+/// シーンを切り替える
+/// </summary>
+/// <param name="scene">切り替え先のシーン</param>
+void ChangeScene(GAME_SCENE scene)
+{
+	GameScene = scene;				//画面切り替え
+	isFadeIn = false;				//フェードインにしない
+	isFadeOut = true;				//フェードアウトする	
+}
+
+/// <summary>
 /// タイトル画面
 /// </summary>
 void Title() 
@@ -246,9 +293,21 @@ void Title()
 	TitleDraw();
 }
 
+
+
 //処理
 void TitleProc() 
 {
+	//ゲーム画面に切り替わる
+	if (KeyClick(KEY_INPUT_RETURN)) 
+	{
+		//次のシーンの初期化をここで行うと楽
+
+		//プレイ画面に切り替え
+		ChangeScene(GAME_SCENE_PLAY);
+	}
+	
+
 	return;
 }
 
@@ -273,12 +332,24 @@ void Play()
 //処理
 void PlayProc() 
 {
+	//ゲーム画面に切り替わる
+	if (KeyClick(KEY_INPUT_RETURN))
+	{
+		//次のシーンの初期化をここで行うと楽
+
+		//プレイ画面に切り替え
+		ChangeScene(GAME_SCENE_END);
+	}
+
 	return;
 }
 
 //描画
 void PlayDraw() 
 {
+	const char* string = "Play";
+	DrawString(0, 50, string, GetColor(0, 0, 0));
+
 	return;
 }
 
@@ -294,18 +365,32 @@ void End()
 //処理
 void EndProc()
 {
+	//ゲーム画面に切り替わる
+	if (KeyClick(KEY_INPUT_RETURN))
+	{
+		//次のシーンの初期化をここで行うと楽
+
+		//プレイ画面に切り替え
+		ChangeScene(GAME_SCENE_TITLE);
+	}
+
 	return;
 }
 
 //描画
 void EndDraw()
 {
+	const char* string = "End";
+	DrawString(0, 50, string, GetColor(0, 0, 0));
+
 	return;
 }
 
 //切り替え画面
 void Change() 
 {
+	DrawString(0, 0, "読み込み",GetColor(0,0,0));
+
 	//処理
 	ChangeProc();
 	//描画
@@ -315,11 +400,94 @@ void Change()
 //処理
 void ChangeProc()
 {
+	//フェードイン
+	if (isFadeIn) 
+	{
+		if (fadeInCnt > fadeInCntMax) 
+		{
+			//カウンタを減らす
+			fadeInCnt--;
+		}
+		else //フェードイン処理が終了したとき
+		{
+			//カウンタを初期化
+			fadeInCnt = fadeInCntInit;
+			isFadeIn = false;
+		}
+	}
+
+	//フェードアウト
+	if (isFadeOut) 
+	{
+		if (fadeOutCnt < fadeOutCntMax) 
+		{
+		//カウンタを増やす
+			fadeOutCnt++;
+		}
+		else 
+		{
+		//カウンタ初期化
+			fadeOutCnt = fadeOutCntInit;;
+			isFadeOut = false;
+		}
+	}
+
+	//切り替え処理終了か
+	if (isFadeIn == false && isFadeOut == false) 
+	{
+	//フェードインしていない、かつフェードアウトもしていない
+		//次のシーンに切り替え
+		GameScene = GameSceneNext;
+		//以前のシーンの更新
+		GameSceneOld = GameScene;
+	}
+
 	return;
 }
 
 //描画
 void ChangeDraw()
 {
+	switch (GameSceneOld)
+	{
+	case GAME_SCENE_TITLE:
+		TitleDraw();	//タイトル画面の描画
+		break;
+	case GAME_SCENE_PLAY:
+		PlayDraw();		//プレイ　画面の描画
+		break;
+	case GAME_SCENE_END:
+		EndDraw();		//エンド　画面の描画
+		break;
+	default:
+		break;
+	}
+
+	////0~255まで
+	//SetDrawBlendMode(DX_BLENDMODE_ALPHA, 127);
+	////半透明の黒画面を描画
+	//DrawBox(0, 0, GAME_WIDTH, GAME_HEIGHT, GetColor(0, 0, 0), true);
+	////ブレンドモードを終わらせる
+	//SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	//フェードイン
+	if (isFadeIn) 
+	{
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, ((float)fadeInCnt / fadeInCntMax) * 255);
+	}
+
+	//フェードアウト
+	if (isFadeOut) 
+	{
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, ((float)fadeOutCnt / fadeOutCntMax) * 255);
+	}
+
+	DrawBox(0, 0, GAME_WIDTH, GAME_HEIGHT, GetColor(0, 0, 0), true);
+	
+	//四角を描画
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	DrawString(0, 0, "切り替え", GetColor(0, 0, 0));
+
 	return;
 }
