@@ -62,18 +62,23 @@ void FpsUpdate(void)
 /// <param name="isBlackColor">描画色を黒にするか</param>
 void FpsDraw(int draw_x,int draw_y,bool isBlackColor) 
 {
-	//描画色(初期は白)
-	int drawColor = 255;
-	//引数で黒にする命令が出たら描画色を黒にする
-	if (isBlackColor) 
+	//デバックモードなら描画する
+	if (GAME_DEBUG) 
 	{
-		drawColor = 0;
+		//描画色(初期は白)
+		int drawColor = 255;
+		//引数で黒にする命令が出たら描画色を黒にする
+		if (isBlackColor)
+		{
+			drawColor = 0;
+		}
+
+		//文字列を描画
+		DrawFormatString(draw_x, draw_y, GetColor(drawColor, drawColor, drawColor),
+			"FPS : %.1f", fps.DrawValue);
+
 	}
-
-	//文字列を描画
-	DrawFormatString(draw_x, draw_y, GetColor(drawColor, drawColor, drawColor),
-		"FPS : %.1f", fps.DrawValue);
-
+	
 	return;
 }
 

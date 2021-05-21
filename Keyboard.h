@@ -1,5 +1,8 @@
 #pragma once
 
+//ヘッダファイルの読み込み
+#include "Game.h"
+
 //取得するキーの種類
 #define KEY_KIND_MAX 256
 

@@ -1,33 +1,6 @@
-//ヘッダファイルの読み込み
-#include "DxLib.h"//必ず必要
-#include "Fps.h"
-#include "Keyboard.h"
-
-////マクロ定義]
-//ゲームタイトル
-#define GAME_TITLE "ゲームタイトル"	
-//ゲームの横幅
-#define GAME_WIDTH 1280
-//ゲームの縦幅
-#define GAME_HEIGHT 720				
-//ゲームの解像度
-#define GAME_COLOR 32				
-//ゲームの背景色
-#define BACK_GROUND_COLOR 200,200,200	
-//ゲームのICONのID
-#define GAME_ICON_ID 333	
-//ウィンドウバーの種類(0 : 縦横の長さを変更不可)(1 : バーがない)
-#define GAME_WINDOW_BAR 0
-
-//列挙型
-//ゲームのシーン
-enum GAME_SCENE 
-{
-	GAME_SCENE_TITLE,
-	GAME_SCENE_PLAY,
-	GAME_SCENE_END,
-	GAME_SCENE_CHANGE
-};
+#include "Game.h"		//ゲーム全体のヘッダファイル
+#include "Fps.h"		//FPS処理のヘッダファイル
+#include "Keyboard.h"	//キーボードの処理のヘッダファイル
 
 //シーンを管理する変数
 //現在のゲームのシーン
