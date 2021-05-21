@@ -2,6 +2,21 @@
 #include "Fps.h"		//FPS処理のヘッダファイル
 #include "Keyboard.h"	//キーボードの処理のヘッダファイル
 
+//キャラクタの構造体
+struct CHARACTER
+{
+	int handle = -1;	//画像のハンドル(管理番号)
+	char path[255];		//画像の場所(パス)
+	int x;				//xの位置
+	int y;				//yの位置
+	int width;			//画像の幅
+	int height;			//画像の高さ
+	int speed = 1;		//移動速度
+
+	RECT coll;			//矩形当たり判定領域
+	bool isDraw = false;//画像が描画できるか
+};
+
 //シーンを管理する変数
 //現在のゲームのシーン
 GAME_SCENE GameScene;
@@ -9,6 +24,9 @@ GAME_SCENE GameScene;
 GAME_SCENE GameSceneOld;
 //次のゲームのシーン
 GAME_SCENE GameSceneNext;
+
+//プレイヤー
+CHARACTER player;
 
 //画面の切り替え
 //フェードアウトしているか
@@ -68,10 +86,6 @@ void ChangeProc();
 //切り替え画面 描画
 void ChangeDraw();
 
-
-//押している間加速
-int AddSpeed(int speed);
-
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -102,18 +116,38 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	//ダブルバッファリング有効化
 	SetDrawScreen(DX_SCREEN_BACK);
-
 	
-	//円の中心点
-	int x = GAME_WIDTH / 2;
-	int y = GAME_HEIGHT / 2;
-	//円の半径
-	int radius = 50;
-	//移動の速さ
-	int speed = 1;
-
 	//最初のシーンはタイトル画面から
 	GameScene = GAME_SCENE_TITLE;
+
+	//ゲーム全体の初期化
+
+	//プレイヤー画像の読み込み
+	strcpyDx(player.path, ".\\Images\\player.png");
+	player.handle = LoadGraph(player.path);
+	//画像が読み込めなかったときはエラー(-1)が入る
+	if (player.handle == -1) 
+	{
+		MessageBox(
+			GetMainWindowHandle(),	//メインのウィンドウハンドル
+			player.path,			//メッセージ文
+			"画像読み込みエラー！",	//メッセージタイトル
+			MB_OK					//ボタン
+		);
+
+		DxLib_End();	//強制終了
+		return -1;		//エラー終了
+	}
+
+	//画像の幅と高さを取得
+	GetGraphSize(player.handle, &player.width, &player.height);
+
+	//プレイヤーの初期化(プレイヤーを画面中央に配置)
+	player.x = GAME_WIDTH / 2 - player.width / 2;
+	player.y = GAME_HEIGHT / 2 - player.height / 2;
+	player.speed = 5;
+	player.isDraw = true;
+
 
 	while (1)
 	{		
@@ -178,49 +212,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 		}
 
-		//速度をリセット
-		if (KeyUpping(KEY_INPUT_UP) || KeyUpping(KEY_INPUT_DOWN)
-			|| KeyUpping(KEY_INPUT_RIGHT) || KeyUpping(KEY_INPUT_LEFT))
-		{
-			if (speed > 0)
-			{
-				speed--;
-			}
-			else 
-			{
-				speed = 0;
-			}
-			
-		}
-
-		//上下の座標を計算
-		if (KeyDown(KEY_INPUT_UP)) 
-		{
-			y -= speed;
-			speed = AddSpeed(speed);
-		}
-		if (KeyDown(KEY_INPUT_DOWN)) 
-		{
-			y += speed;
-			speed = AddSpeed(speed);
-		}
-
-		//左右の座標を計算
-		if (KeyDown(KEY_INPUT_RIGHT)) 
-		{
-			x += speed;
-			speed = AddSpeed(speed);
-		}
-		if (KeyDown(KEY_INPUT_LEFT)) 
-		{
-			x -= speed;
-			speed = AddSpeed(speed);
-		}
-
-		DrawFormatString(0, 0, GetColor(0, 0, 0), "%d", speed);
-
-		//円の描画
-		DrawCircle(x, y, radius, GetColor(0, 0, 0), TRUE);
+		
 
 		//FPS値を描画
 		FpsDraw(0,100,true);
@@ -232,28 +224,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ScreenFlip();
 	}
 
+	//終わるときの処理
+	DeleteGraph(player.handle);	//プレイヤー画像をメモリ上から削除
 
 	// ＤＸライブラリ使用の終了処理準備(return 0でソフトが終了する)
 	DxLib_End();				
 
 	// ソフトの終了
 	return 0;				 
-}
-
-int AddSpeed(int speed) 
-{
-	//最大速度
-	int max = 100;
-
-	if (speed < max)
-	{
-		speed++;
-		return speed;
-	}
-	else 
-	{
-		return max;
-	}
 }
 
 /// <summary>
@@ -277,8 +255,6 @@ void Title()
 	//描画
 	TitleDraw();
 }
-
-
 
 //処理
 void TitleProc() 
@@ -334,6 +310,13 @@ void PlayDraw()
 {
 	const char* string = "Play";
 	DrawString(0, 50, string, GetColor(0, 0, 0));
+
+	//プレイヤーの描画
+	if (player.isDraw) 
+	{
+		//画像の描画
+		DrawGraph(player.x, player.y, player.handle, true);
+	}
 
 	return;
 }
