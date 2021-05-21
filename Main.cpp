@@ -1,5 +1,6 @@
 //ヘッダファイルの読み込み
-#include "DxLib.h";//必ず必要
+#include "DxLib.h"//必ず必要
+#include "Fps.h"
 #include "Keyboard.h"
 
 ////マクロ定義]
@@ -147,6 +148,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (ClearDrawScreen() != 0) { break; }
 		//キー入力状態を更新する
 		AllKeyUpdate();
+
+		//FPS値の更新※AllKeyUpdateなどの一連の処理が終了後に書く
+		FpsUpdate();
 		
 		//メッセージを受け取り続ける、×などでウィンドウが閉じたとき
 		if (ProcessMessage() != 0) 
@@ -245,9 +249,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//円の描画
 		DrawCircle(x, y, radius, GetColor(0, 0, 0), TRUE);
 
+		//FPS値を描画
+		FpsDraw(0,100,true);
+
+		//FPS値を待つ
+		FpsWait();
+
 		//ダブルバッファリングした画像を描画
 		ScreenFlip();
 	}
+
 
 	// ＤＸライブラリ使用の終了処理準備(return 0でソフトが終了する)
 	DxLib_End();				
@@ -263,7 +274,8 @@ int AddSpeed(int speed)
 
 	if (speed < max)
 	{
-		return speed + 1;
+		speed++;
+		return speed;
 	}
 	else 
 	{
