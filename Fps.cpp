@@ -32,6 +32,9 @@ void FpsUpdate(void)
 	//前回取得した時間からの経過時間を秒に(小数)に変換してからセット
 	fps.DeltaTime = (fps.NowTime - fps.OldTime) / divDeltaTime;
 
+	//今回取得した時間を保存
+	fps.OldTime = fps.NowTime;
+
 	//1フレーム目～FPS設定値まではカウントアップ
 	if (fps.Count < fps.SampleRote) 
 	{

@@ -24,6 +24,9 @@ struct FPS
 	int SampleRote = GAME_FPS;	//平均を取るサンプル値
 };
 
+//グローバル変数の外部参照
+extern FPS fps;	//FPSの管理
+
 //プロトタイプ宣言
 void FpsUpdate(void);	// Fps値を測定し、値を更新する
 void FpsDraw(int draw_x, int draw_y, bool isBlackColor);	//デバック用の平均FPS値を描画する

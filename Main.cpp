@@ -85,6 +85,9 @@ void Change();
 void ChangeProc();
 //切り替え画面 描画
 void ChangeDraw();
+//当たり判定の領域を更新
+void CollUpdate(CHARACTER* chara);
+void CollUpdate(CHARACTER* chara, int addLeft, int addTop, int addRight, int addBottom);
 
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -141,6 +144,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//画像の幅と高さを取得
 	GetGraphSize(player.handle, &player.width, &player.height);
+
+	//0524
+	//当たり判定を更新する
+	CollUpdate(&player, 100, 50, 30, 10);	//プレイヤーの当たり判定のアドレス
 
 	//プレイヤーの初期化(プレイヤーを画面中央に配置)
 	player.x = GAME_WIDTH / 2 - player.width / 2;
@@ -302,6 +309,27 @@ void PlayProc()
 		ChangeScene(GAME_SCENE_END);
 	}
 
+	//プレイヤーの操作
+	if (KeyDown(KEY_INPUT_DOWN)) 
+	{
+		player.y += player.speed;
+	}
+	if (KeyDown(KEY_INPUT_UP))
+	{
+		player.y -= player.speed;
+	}
+	if (KeyDown(KEY_INPUT_LEFT))
+	{
+		player.x -= player.speed;
+	}
+	if (KeyDown(KEY_INPUT_RIGHT))
+	{
+		player.x += player.speed;
+	}
+
+	//当たり判定を更新する
+	CollUpdate(&player, 0, 0, 30, 10);
+
 	return;
 }
 
@@ -316,7 +344,16 @@ void PlayDraw()
 	{
 		//画像の描画
 		DrawGraph(player.x, player.y, player.handle, true);
+
+		//デバックのときは当たり判定領域を描画
+		if (GAME_DEBUG) 
+		{
+		//四角を描画
+			DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(0, 0, 0), false);
+		}
 	}
+
+	//DrawFormatString()
 
 	return;
 }
@@ -456,6 +493,38 @@ void ChangeDraw()
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 	DrawString(0, 0, "切り替え", GetColor(0, 0, 0));
+
+	return;
+}
+
+/// <summary>
+/// 当たり判定の領域更新
+/// </summary>
+/// <param name="coll"></param>
+void CollUpdate(CHARACTER* chara) 
+{
+	chara->coll.left = chara->x;
+	chara->coll.top = chara->y;
+	chara->coll.right = chara->x + chara->width;
+	chara->coll.bottom = chara->y + chara->height;
+
+	return;
+}
+
+/// <summary>
+/// 当たり判定の領域更新(四方のオーバーロード)
+/// </summary>
+/// <param name="chara"></param>
+/// <param name="addLeft"></param>
+/// <param name="addTop"></param>
+/// <param name="addRight"></param>
+/// <param name="addBottom"></param>
+void CollUpdate(CHARACTER* chara, int addLeft, int addTop, int addRight, int addBottom)
+{
+	chara->coll.left = chara->x + addLeft;
+	chara->coll.top = chara->y + addTop;
+	chara->coll.right = chara->x + chara->width + addRight;
+	chara->coll.bottom = chara->y + chara->height + addBottom;
 
 	return;
 }
