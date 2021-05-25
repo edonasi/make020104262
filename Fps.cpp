@@ -118,7 +118,7 @@ void FpsWait()
 			if (waitTime > 0
 				&& waitTime <= millTime / fps.Value)
 			{
-				fps.Count++;
+				fps.Value++;
 			}
 			else 
 			{

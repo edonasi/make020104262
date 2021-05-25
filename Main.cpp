@@ -27,6 +27,8 @@ GAME_SCENE GameSceneNext;
 
 //プレイヤー
 CHARACTER player;
+//ゴール
+CHARACTER goal;
 
 //画面の切り替え
 //フェードアウトしているか
@@ -128,6 +130,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//プレイヤー画像の読み込み
 	strcpyDx(player.path, ".\\Images\\player.png");
 	player.handle = LoadGraph(player.path);
+	//ゴールの画像の読み込み
+	strcpyDx(goal.path, ".\\Images\\goal.png");
+	goal.handle = LoadGraph(goal.path);
+
 	//画像が読み込めなかったときはエラー(-1)が入る
 	if (player.handle == -1) 
 	{
@@ -144,17 +150,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//画像の幅と高さを取得
 	GetGraphSize(player.handle, &player.width, &player.height);
+	GetGraphSize(goal.handle, &goal.width, &goal.height);
 
 	//0524
 	//当たり判定を更新する
 	CollUpdate(&player, 100, 50, 30, 10);	//プレイヤーの当たり判定のアドレス
+	CollUpdate(&goal);	//プレイヤーの当たり判定のアドレス
 
 	//プレイヤーの初期化(プレイヤーを画面中央に配置)
 	player.x = GAME_WIDTH / 2 - player.width / 2;
 	player.y = GAME_HEIGHT / 2 - player.height / 2;
-	player.speed = 5;
+	player.speed = 500;
 	player.isDraw = true;
-
+	//ゴールの初期化
+	goal.x = 400;
+	goal.y = 400;
+	goal.speed = 500;
+	goal.isDraw = true;
 
 	while (1)
 	{		
@@ -233,6 +245,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//終わるときの処理
 	DeleteGraph(player.handle);	//プレイヤー画像をメモリ上から削除
+	DeleteGraph(goal.handle);	//プレイヤー画像をメモリ上から削除
+
 
 	// ＤＸライブラリ使用の終了処理準備(return 0でソフトが終了する)
 	DxLib_End();				
@@ -312,20 +326,21 @@ void PlayProc()
 	//プレイヤーの操作
 	if (KeyDown(KEY_INPUT_DOWN)) 
 	{
-		player.y += player.speed;
+		player.y +=player.speed * fps.DeltaTime;
 	}
 	if (KeyDown(KEY_INPUT_UP))
 	{
-		player.y -= player.speed;
+		player.y -= player.speed * fps.DeltaTime;
 	}
 	if (KeyDown(KEY_INPUT_LEFT))
 	{
-		player.x -= player.speed;
+		player.x -= player.speed* fps.DeltaTime;
 	}
 	if (KeyDown(KEY_INPUT_RIGHT))
 	{
-		player.x += player.speed;
+		player.x += player.speed *fps.DeltaTime;
 	}
+	DrawFormatString(500, 500, GetColor(0, 0, 0), "delta : %f", fps.DeltaTime);
 
 	//当たり判定を更新する
 	CollUpdate(&player, 0, 0, 30, 10);
@@ -350,6 +365,19 @@ void PlayDraw()
 		{
 		//四角を描画
 			DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(0, 0, 0), false);
+		}
+	}
+
+	//ゴールの描画
+	if (goal.isDraw) 
+	{
+		//画像の描画
+		DrawGraph(goal.x, goal.y, goal.handle, true);
+
+		//デバックのときは当たり判定領域を描画
+		if (GAME_DEBUG)
+		{
+			DrawBox(goal.coll.left, goal.coll.top, goal.coll.right, goal.coll.bottom, GetColor(0, 0, 0), false);
 		}
 	}
 
