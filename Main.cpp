@@ -90,6 +90,8 @@ void ChangeDraw();
 //当たり判定の領域を更新
 void CollUpdate(CHARACTER* chara);
 void CollUpdate(CHARACTER* chara, int addLeft, int addTop, int addRight, int addBottom);
+//当たり判定(Enter)
+bool CollStay(CHARACTER chara1, CHARACTER chara2);
 
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -154,19 +156,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//0524
 	//当たり判定を更新する
-	CollUpdate(&player, 100, 50, 30, 10);	//プレイヤーの当たり判定のアドレス
-	CollUpdate(&goal);	//プレイヤーの当たり判定のアドレス
 
 	//プレイヤーの初期化(プレイヤーを画面中央に配置)
 	player.x = GAME_WIDTH / 2 - player.width / 2;
 	player.y = GAME_HEIGHT / 2 - player.height / 2;
 	player.speed = 500;
 	player.isDraw = true;
+	CollUpdate(&player, 100, 50, 30, 10);	//プレイヤーの当たり判定のアドレス
+
 	//ゴールの初期化
 	goal.x = 400;
 	goal.y = 400;
 	goal.speed = 500;
 	goal.isDraw = true;
+	CollUpdate(&goal);	//ゴールの当たり判定のアドレス
 
 	while (1)
 	{		
@@ -309,6 +312,8 @@ void Play()
 	PlayProc();
 	//描画
 	PlayDraw();
+
+	
 }
 
 //処理
@@ -320,7 +325,7 @@ void PlayProc()
 		//次のシーンの初期化をここで行うと楽
 
 		//プレイ画面に切り替え
-		ChangeScene(GAME_SCENE_END);
+		/*ChangeScene(GAME_SCENE_END);*/
 	}
 
 	//プレイヤーの操作
@@ -343,7 +348,21 @@ void PlayProc()
 	DrawFormatString(500, 500, GetColor(0, 0, 0), "delta : %f", fps.DeltaTime);
 
 	//当たり判定を更新する
-	CollUpdate(&player, 0, 0, 30, 10);
+	CollUpdate(&player, 0, 0, 30, 10);		//プレイヤー
+	CollUpdate(&goal);						//ゴール
+
+	
+	//当たり判定
+	if (CollStay(player, goal))
+	{
+		//エンド画面に切り替え
+		ChangeScene(GAME_SCENE_END);
+
+		return;		//処理強制終了(※エンド画面に移行するのでPlayをする必要がない)
+	}
+	
+
+	
 
 	return;
 }
@@ -496,13 +515,6 @@ void ChangeDraw()
 		break;
 	}
 
-	////0~255まで
-	//SetDrawBlendMode(DX_BLENDMODE_ALPHA, 127);
-	////半透明の黒画面を描画
-	//DrawBox(0, 0, GAME_WIDTH, GAME_HEIGHT, GetColor(0, 0, 0), true);
-	////ブレンドモードを終わらせる
-	//SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
 	//フェードイン
 	if (isFadeIn) 
 	{
@@ -524,6 +536,8 @@ void ChangeDraw()
 
 	return;
 }
+
+
 
 /// <summary>
 /// 当たり判定の領域更新
@@ -555,4 +569,26 @@ void CollUpdate(CHARACTER* chara, int addLeft, int addTop, int addRight, int add
 	chara->coll.bottom = chara->y + chara->height + addBottom;
 
 	return;
+}
+
+//当たり判定(Enter)
+bool CollStay(CHARACTER chara1, CHARACTER chara2)
+{
+	//描画されていないなら行わない
+	if (chara1.isDraw && chara2.isDraw)
+	{
+		//当たり判定
+		if (
+			chara1.coll.left<chara2.coll.right
+			&& chara1.coll.right>chara2.coll.left
+			&& chara1.coll.top<chara2.coll.bottom
+			&& chara1.coll.bottom>chara2.coll.top
+			)
+		{
+			return true;
+		}
+	}
+	
+
+	return false;
 }
