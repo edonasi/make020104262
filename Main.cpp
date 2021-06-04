@@ -73,6 +73,10 @@ int fadeInCnt = fadeInCntInit;
 //フェードアウトのカウンタ
 int fadeInCntMax = fadeTimeMax;
 
+//ゲーム全体の初期化
+bool GameLoad();
+//
+void GameInit();
 //※Alt+Shift+左ドラッグ=矩形選択
 // //プロトタイプ宣言
 //画面を切り替える処理
@@ -89,6 +93,7 @@ void Play();
 void PlayProc();
 //プレイ画面 描画
 void PlayDraw();
+ 
 //エンド画面
 void End();
 //エンド画面 処理
@@ -143,63 +148,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//ゲーム全体の初期化
 
-	//プレイヤー画像の読み込み
-	strcpyDx(playMovie.path, ".\\Movie\\PlayMovie.mp4");
-	playMovie.handle = LoadGraph(playMovie.path);
-
-	//動画が読み込みなかったときはエラーを返す
-	if (playMovie.handle == -1) 
+	//ゲーム読み込み
+	if (!GameLoad()) 
 	{
-		MessageBox(
-			GetMainWindowHandle(),
-			playMovie.path,
-			"Main.cpp : playMovie.handle : 動画読み込みエラー",
-			MB_OK
-		);
+	//データの読み込みに失敗した時
+		DxLib_End();	//DXライブラリの終了
+		return -1;
 	}
 
-	//プレイヤー画像の読み込み
-	strcpyDx(player.path, ".\\Images\\player.png");
-	player.handle = LoadGraph(player.path);
-	//ゴールの画像の読み込み
-	strcpyDx(goal.path, ".\\Images\\goal.png");
-	goal.handle = LoadGraph(goal.path);
-
-	//画像が読み込めなかったときはエラー(-1)が入る
-	if (player.handle == -1) 
-	{
-		MessageBox(
-			GetMainWindowHandle(),	//メインのウィンドウハンドル
-			player.path,			//メッセージ文
-			"画像読み込みエラー！",	//メッセージタイトル
-			MB_OK					//ボタン
-		);
-
-		DxLib_End();	//強制終了
-		return -1;		//エラー終了
-	}
-
-	//画像の幅と高さを取得
-	GetGraphSize(player.handle, &player.width, &player.height);
-	GetGraphSize(goal.handle, &goal.width, &goal.height);
-
-	//0524
-	//当たり判定を更新する
-
-	//プレイヤーの初期化(プレイヤーを画面中央に配置)
-	player.x = GAME_WIDTH / 2 - player.width / 2;
-	player.y = GAME_HEIGHT / 2 - player.height / 2;
-	player.speed = 500;
-	player.isDraw = true;
-	CollUpdate(&player, 100, 50, 30, 10);	//プレイヤーの当たり判定のアドレス
-
-	//ゴールの初期化
-	goal.x = 400;
-	goal.y = 400;
-	goal.speed = 500;
-	goal.isDraw = true;
-	CollUpdate(&goal);	//ゴールの当たり判定のアドレス
-
+	//ゲームの初期化
+	GameInit();
+	
 	while (1)
 	{		
 		//画面を消去する
@@ -289,6 +248,82 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 }
 
 /// <summary>
+/// ゲームデータの読み込み
+/// </summary>
+/// <returns>読み込めたらtrue, 読み込めなかったらfalse</returns>
+bool GameLoad() 
+{
+	//プレイ動画の読み込み
+	strcpyDx(playMovie.path, ".\\Movie\\PlayMovie.mp4");
+	playMovie.handle = LoadGraph(playMovie.path);
+
+	//動画が読み込みなかったときはエラーを返す
+	if (playMovie.handle == -1)
+	{
+		MessageBox(
+			GetMainWindowHandle(),
+			playMovie.path,
+			"Main.cpp : playMovie.handle : 動画読み込みエラー",
+			MB_OK
+		);
+
+		return false;
+	}
+
+	//プレイヤー画像の読み込み
+	strcpyDx(player.path, ".\\Images\\player.png");
+	player.handle = LoadGraph(player.path);
+	//ゴールの画像の読み込み
+	strcpyDx(goal.path, ".\\Images\\goal.png");
+	goal.handle = LoadGraph(goal.path);
+
+	//画像が読み込めなかったときはエラー(-1)が入る
+	if (player.handle == -1)
+	{
+		MessageBox(
+			GetMainWindowHandle(),	//メインのウィンドウハンドル
+			player.path,			//メッセージ文
+			"画像読み込みエラー！",	//メッセージタイトル
+			MB_OK					//ボタン
+		);
+
+		DxLib_End();	//強制終了
+		return false;
+	}
+
+	
+
+	return true;
+}
+
+/// <summary>
+/// ゲームデータの初期化
+/// </summary>
+void GameInit() 
+{
+	//画像の幅と高さを取得
+	GetGraphSize(player.handle, &player.width, &player.height);
+	GetGraphSize(goal.handle, &goal.width, &goal.height);
+
+	//0524
+	//当たり判定を更新する
+
+	//プレイヤーの初期化(プレイヤーを画面中央に配置)
+	player.x = GAME_WIDTH / 2 - player.width / 2;
+	player.y = GAME_HEIGHT / 2 - player.height / 2;
+	player.speed = 500;
+	player.isDraw = true;
+	CollUpdate(&player, 100, 50, 30, 10);	//プレイヤーの当たり判定のアドレス
+
+	//ゴールの初期化
+	goal.x = 400;
+	goal.y = 400;
+	goal.speed = 500;
+	goal.isDraw = true;
+	CollUpdate(&goal);	//ゴールの当たり判定のアドレス
+}
+
+/// <summary>
 /// シーンを切り替える
 /// </summary>
 /// <param name="scene">切り替え先のシーン</param>
@@ -317,6 +352,7 @@ void TitleProc()
 	if (KeyClick(KEY_INPUT_RETURN)) 
 	{
 		//次のシーンの初期化をここで行うと楽
+		GameInit();	//ゲームの初期化
 
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_PLAY);
