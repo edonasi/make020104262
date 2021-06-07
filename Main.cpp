@@ -1,6 +1,7 @@
 #include "Game.h"		//ゲーム全体のヘッダファイル
 #include "Fps.h"		//FPS処理のヘッダファイル
 #include "Keyboard.h"	//キーボードの処理のヘッダファイル
+#define _CRT_SECURE_NO_WARNINGS
 
 //キャラクタの構造体
 struct CHARACTER
@@ -28,6 +29,16 @@ struct MOVIE
 	int volume = 255;	//ボリューム(最小)0～255(最大)
 };
 
+//音楽の構造体
+struct AUDIO
+{
+	int handle = -1;	//音楽のハンドル
+	char path[255];		//音楽のパス
+
+	int volume = -1;	//ボリューム
+	int playType = -1;
+};
+
 //シーンを管理する変数
 //現在のゲームのシーン
 GAME_SCENE GameScene;
@@ -43,6 +54,11 @@ MOVIE playMovie;
 CHARACTER player;
 //ゴール
 CHARACTER goal;
+
+//音楽
+AUDIO titleBgm;
+AUDIO playBgm;
+AUDIO endBgm;
 
 //画面の切り替え
 //フェードアウトしているか
@@ -75,6 +91,8 @@ int fadeInCntMax = fadeTimeMax;
 
 //ゲーム全体の初期化
 bool GameLoad();
+//音楽読み込み
+bool AudioLoad(AUDIO* audio, const char* path, int playType, int volume);
 //
 void GameInit();
 //※Alt+Shift+左ドラッグ=矩形選択
@@ -176,6 +194,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			break;
 		}
 
+
 		//ESCキーで強制終了
 		if (KeyClick(KEY_INPUT_ESCAPE)) { break; }
 
@@ -239,6 +258,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DeleteGraph(player.handle);	//プレイヤー画像をメモリ上から削除
 	DeleteGraph(goal.handle);	//プレイヤー画像をメモリ上から削除
 
+	//音楽の消去
+	DeleteSoundMem(titleBgm.handle);
+	DeleteSoundMem(playBgm.handle);
+	DeleteSoundMem(endBgm.handle);
+
 
 	// ＤＸライブラリ使用の終了処理準備(return 0でソフトが終了する)
 	DxLib_End();				
@@ -246,6 +270,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// ソフトの終了
 	return 0;				 
 }
+
+const int VOLUME_MAX = 255;
+const int BGM_LOOP = DX_PLAYTYPE_LOOP;
 
 /// <summary>
 /// ゲームデータの読み込み
@@ -291,7 +318,62 @@ bool GameLoad()
 		return false;
 	}
 
-	
+	//画像の幅と高さを取得
+	GetGraphSize(player.handle, &player.width, &player.height);
+	GetGraphSize(goal.handle, &goal.width, &goal.height);
+
+	//音楽の読み込み
+	if (AudioLoad(
+		&titleBgm,
+		".\\Audio\\魔王魂  ファンタジー14.mp3",
+		BGM_LOOP,
+		VOLUME_MAX)
+		== false) {
+		return false;
+	}
+
+	if (AudioLoad(
+		&playBgm,
+		".\\Audio\\魔王魂  ファンタジー15.mp3",
+		BGM_LOOP,
+		VOLUME_MAX)
+		== false) {
+		return false;
+	}
+
+	if (AudioLoad(
+		&endBgm,
+		".\\Audio\\魔王魂  アコースティック52.mp3",
+		BGM_LOOP,
+		VOLUME_MAX)
+		== false) {
+		return false;
+	}
+
+	return true;
+}
+
+//音楽の読み込み
+bool AudioLoad(AUDIO* audio,const char* path, int playType, int volume)
+{
+	//音楽の読み込み
+	strcpyDx(audio->path, path);
+	audio->handle = LoadSoundMem(audio->path);
+
+	if (audio->handle == -1)
+	{
+		MessageBox(
+			GetMainWindowHandle(),
+			audio->path,
+			"音楽読み込みエラー",
+			MB_OK
+		);
+
+		return false;
+	}
+
+	audio->playType = playType;
+	audio->volume = volume;
 
 	return true;
 }
@@ -301,9 +383,7 @@ bool GameLoad()
 /// </summary>
 void GameInit() 
 {
-	//画像の幅と高さを取得
-	GetGraphSize(player.handle, &player.width, &player.height);
-	GetGraphSize(goal.handle, &goal.width, &goal.height);
+	
 
 	//0524
 	//当たり判定を更新する
@@ -348,6 +428,8 @@ void Title()
 //処理
 void TitleProc() 
 {
+	
+
 	//ゲーム画面に切り替わる
 	if (KeyClick(KEY_INPUT_RETURN)) 
 	{
@@ -356,8 +438,21 @@ void TitleProc()
 
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_PLAY);
+
+		//音楽を停止
+		if (CheckSoundMem(titleBgm.handle) == 1)
+		{
+			StopSoundMem(titleBgm.handle);	
+		}
+
+		return;
 	}
 	
+	//音楽を再生
+	if (CheckSoundMem(titleBgm.handle) == 0)
+	{
+		PlaySoundMem(titleBgm.handle, titleBgm.playType);
+	}
 
 	return;
 }
@@ -392,6 +487,20 @@ void PlayProc()
 
 		//プレイ画面に切り替え
 		/*ChangeScene(GAME_SCENE_END);*/
+
+		//音楽を停止
+		if (CheckSoundMem(playBgm.handle) == 1)
+		{
+			StopSoundMem(playBgm.handle);
+		}
+
+		return;
+	}
+
+	//音楽を再生
+	if (CheckSoundMem(playBgm.handle) == 0)
+	{
+		PlaySoundMem(playBgm.handle, playBgm.playType);
 	}
 
 	//プレイヤーの操作
@@ -423,6 +532,12 @@ void PlayProc()
 	{
 		//エンド画面に切り替え
 		ChangeScene(GAME_SCENE_END);
+
+		//音楽を停止
+		if (CheckSoundMem(playBgm.handle) == 1)
+		{
+			StopSoundMem(playBgm.handle);
+		}
 
 		return;		//処理強制終了(※エンド画面に移行するのでPlayをする必要がない)
 	}
@@ -507,6 +622,20 @@ void EndProc()
 
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_TITLE);
+
+		//音楽を停止
+		if (CheckSoundMem(endBgm.handle) == 1)
+		{
+			StopSoundMem(endBgm.handle);
+		}
+
+		return;
+	}
+
+	//音楽を再生
+	if (CheckSoundMem(endBgm.handle) == 0)
+	{
+		PlaySoundMem(endBgm.handle, endBgm.playType);
 	}
 
 	return;
