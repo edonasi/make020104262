@@ -59,6 +59,7 @@ CHARACTER goal;
 AUDIO titleBgm;
 AUDIO playBgm;
 AUDIO endBgm;
+AUDIO workSe;
 
 //画面の切り替え
 //フェードアウトしているか
@@ -262,6 +263,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DeleteSoundMem(titleBgm.handle);
 	DeleteSoundMem(playBgm.handle);
 	DeleteSoundMem(endBgm.handle);
+	DeleteSoundMem(workSe.handle);
 
 
 	// ＤＸライブラリ使用の終了処理準備(return 0でソフトが終了する)
@@ -345,6 +347,15 @@ bool GameLoad()
 		&endBgm,
 		".\\Audio\\魔王魂  アコースティック52.mp3",
 		BGM_LOOP,
+		VOLUME_MAX)
+		== false) {
+		return false;
+	}
+
+	if (AudioLoad(
+		&workSe,
+		".\\Audio\\効果音ラボ_革靴で歩く.mp3",
+		DX_PLAYTYPE_BACK,
 		VOLUME_MAX)
 		== false) {
 		return false;
@@ -520,7 +531,22 @@ void PlayProc()
 	{
 		player.x += player.speed *fps.DeltaTime;
 	}
-	DrawFormatString(500, 500, GetColor(0, 0, 0), "delta : %f", fps.DeltaTime);
+
+	//移動音
+	if (KeyDown(KEY_INPUT_DOWN) || KeyDown(KEY_INPUT_UP)
+		|| KeyDown(KEY_INPUT_RIGHT) || KeyDown(KEY_INPUT_LEFT))
+	{
+		if (CheckSoundMem(workSe.handle) == 0)
+		{
+			PlaySoundMem(workSe.handle, workSe.playType);
+		}
+	}
+
+	if (GAME_DEBUG) 
+	{
+		DrawFormatString(500, 500, GetColor(0, 0, 0), "delta : %f", fps.DeltaTime);
+	}
+	
 
 	//当たり判定を更新する
 	CollUpdate(&player, 0, 0, 30, 10);		//プレイヤー
