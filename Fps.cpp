@@ -57,6 +57,8 @@ void FpsUpdate(void)
 	return;
 }
 
+
+
 /// <summary>
 /// デバック用の平均FPS値を描画する
 /// </summary>
