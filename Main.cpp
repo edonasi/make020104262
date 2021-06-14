@@ -103,6 +103,11 @@ int fadeInCnt = fadeInCntInit;
 //フェードアウトのカウンタ
 int fadeInCntMax = fadeTimeMax;
 
+//pushEnterの点滅
+int pushEnterCnt = 0;
+const int pushEnterCntMax = 60;
+bool isPushEnterBrink = false;
+
 //ゲーム全体の初期化
 bool GameLoad();
 //画像の読み込み
@@ -475,6 +480,22 @@ void GameInit()
 	goal.speed = 500;
 	goal.img.isDraw = true;
 	CollUpdate(&goal);	//ゴールの当たり判定のアドレス
+
+	//タイトルロゴの位置
+	titleLogo.x = GAME_WIDTH / 2 - titleLogo.width / 2;	//中央揃え
+	titleLogo.y = 100;
+
+	//PushEnterロゴの位置を決める
+	pushEnterLogo.x = GAME_WIDTH / 2 - pushEnterLogo.width / 2;	//中央揃え
+	pushEnterLogo.y = GAME_HEIGHT - pushEnterLogo.height - titleLogo.y;
+
+	//PushEnterの点滅
+	pushEnterCnt = 0;
+	isPushEnterBrink = false;
+
+	//クリアロゴの位置を決める
+	gameClearLogo.x = GAME_WIDTH / 2 - gameClearLogo.width / 2;		//中央揃え
+	gameClearLogo.y = GAME_HEIGHT / 2 - gameClearLogo.height / 2;	//中央揃え
 }
 
 /// <summary>
@@ -540,23 +561,29 @@ void TitleDraw()
 		DrawString(0, 50, string, GetColor(0, 0, 0));
 	}
 	//※レイヤー概念は下に書いた処理がゲーム画面では上のレイヤーに表示される(photoshopやillustratorと逆)
-	
-	//ロゴの大きさ調整
-	int logoStartX = 320;
-	int titleLogoStartY = 100;
-	int pushEnterLogoStartY = 300;
-	int logoExX = GAME_WIDTH / 2;
-	int logoExY = GAME_HEIGHT / 2;
 
-	//タイトルロゴ表示
-	DrawExtendGraph(logoStartX, titleLogoStartY, 
-		logoStartX+logoExX, titleLogoStartY+logoExY,
-		titleLogo.handle, true);
+	//ロゴの表示
+	DrawGraph(titleLogo.x, titleLogo.y, titleLogo.handle, true); 
 
-	//プッシュエンターロゴ表示
-	DrawExtendGraph(logoStartX, pushEnterLogoStartY,
-		logoStartX + logoExX, pushEnterLogoStartY + logoExY,
-		pushEnterLogo.handle, true);
+
+	//pushEnter点滅
+	if (isPushEnterBrink)
+	{
+		pushEnterCnt--;
+
+		if (pushEnterCnt < 0) { isPushEnterBrink = false; }
+	}
+	else
+	{
+		pushEnterCnt++;
+
+		if (pushEnterCnt > pushEnterCntMax) { isPushEnterBrink = true; }
+	}
+	//pushEnterの表示
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, ((float)pushEnterCnt / pushEnterCntMax) * 255);
+	DrawGraph(pushEnterLogo.x, pushEnterLogo.y, pushEnterLogo.handle, true);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
 
 	return;
 }
@@ -746,7 +773,7 @@ void EndDraw()
 	}
 
 	//ゲームクリアロゴ表示
-	DrawGraph(0, 0, gameClearLogo.handle, true);
+	DrawGraph(gameClearLogo.x, gameClearLogo.y, gameClearLogo.handle, true);
 
 	return;
 }
