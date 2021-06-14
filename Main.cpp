@@ -103,6 +103,11 @@ int fadeInCnt = fadeInCntInit;
 //フェードアウトのカウンタ
 int fadeInCntMax = fadeTimeMax;
 
+//titleLogoの上下
+int titleLogoCnt = 0;
+const int titleLogoCntMax = 120;
+bool isTitleEnterBrink = false;
+
 //pushEnterの点滅
 int pushEnterCnt = 0;
 const int pushEnterCntMax = 60;
@@ -485,6 +490,10 @@ void GameInit()
 	titleLogo.x = GAME_WIDTH / 2 - titleLogo.width / 2;	//中央揃え
 	titleLogo.y = 100;
 
+	//タイトルロゴの上下
+	titleLogoCnt = 0;
+	isTitleEnterBrink = false;
+
 	//PushEnterロゴの位置を決める
 	pushEnterLogo.x = GAME_WIDTH / 2 - pushEnterLogo.width / 2;	//中央揃え
 	pushEnterLogo.y = GAME_HEIGHT - pushEnterLogo.height - titleLogo.y;
@@ -562,8 +571,31 @@ void TitleDraw()
 	}
 	//※レイヤー概念は下に書いた処理がゲーム画面では上のレイヤーに表示される(photoshopやillustratorと逆)
 
+	int titleAddYMax = 40;
+	//タイトルロゴを上下に動かす
+	if (isTitleEnterBrink) 
+	{
+		titleLogoCnt -= 4;
+
+		if (titleLogoCnt < 0) 
+		{
+			isTitleEnterBrink = false; 
+			titleLogoCnt = 0;
+		}
+	}
+	else 
+	{
+		titleLogoCnt++;
+
+		if (titleLogoCnt > titleLogoCntMax) 
+		{ 
+			isTitleEnterBrink = true; 
+			titleLogoCnt = titleLogoCntMax;
+		}
+	}
+
 	//ロゴの表示
-	DrawGraph(titleLogo.x, titleLogo.y, titleLogo.handle, true); 
+	DrawGraph(titleLogo.x, titleLogo.y + ((float)titleLogoCnt/titleLogoCntMax)*titleAddYMax, titleLogo.handle, true);
 
 
 	//pushEnter点滅
